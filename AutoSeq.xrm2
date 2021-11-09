@@ -1,0 +1,82 @@
+{
+  "Organizations": [
+    {
+      "ConnectionProtocol": 3072,
+      "OrganizationDisplayName": "Absolute Insight (DEV)",
+      "OrganizationName": "ed852cffdea841c48d4a69aa7ecf4c87",
+      "OrganizationUrl": "https://absins.api.crm.dynamics.com/xrmservices/2011/organization.svc",
+      "OrganizationVersion": "9.2.21101.144",
+      "UserFriendlyName": "DEV (AutoSeq)",
+      "CurrentSolution": {
+        "Id": "4ae5054d-d240-ec11-8c62-000d3a5b81bb",
+        "Name": "AutoSeq",
+        "UniqueName": "AutoSeq"
+      },
+      "Projects": [
+        {
+          "Name": "AutoSeq.Plugins.csproj",
+          "Properties": [
+            {
+              "PropertiesType": 1,
+              "Config": {
+                "Id": "a9153dc6-7524-4fa8-94c7-e5fdf7a13c04",
+                "IsolationMode": 2,
+                "IsRegisteredInCrm": true,
+                "SourceType": 0
+              }
+            }
+          ]
+        }
+      ],
+      "Settings": [
+        {
+          "CssMinification": 1,
+          "JavaScriptMinification": 1,
+          "SettingType": 6
+        },
+        {
+          "BaseProxyClassFileName": "BaseProxyClass",
+          "CustomProxyNamingServiceDllPath": "",
+          "EnumsFileName": "OptionSetEnums",
+          "GenerateProxyEnumsInSeparateClasses": true,
+          "MakeAllPropertiesEditable": false,
+          "ProxyEntityClassPath": "\\ProxyClasses",
+          "ProxyEntityNamingConvention": 1,
+          "ProxyEntityNamingPattern": "{0}",
+          "ProxyEnumPath": "\\ProxyClasses\\Enums",
+          "ProxyGenerationMethod": 1,
+          "ProxyMessagesPath": "\\ProxyClasses\\Messages",
+          "ProxyNamingMethod": 0,
+          "ServiceContextName": "CrmServiceContext",
+          "SettingType": 4,
+          "UseStronglyTypedNameForProxyRelatedEntities": true
+        },
+        {
+          "ChartPath": "\\Charts",
+          "CssPath": "\\WebResources",
+          "CustomAssemblyConfigPath": "\\AssemblyConfig",
+          "EmailTemplatePath": "\\EmailTemplates",
+          "EntityMetadataPath": "\\EntityMetadata",
+          "HtmlPath": "\\WebResources",
+          "ImagePath": "\\WebResources",
+          "JavaScriptPath": "\\WebResources",
+          "PluginConfigurationsPath": "\\PluginConfigurations",
+          "ProcessPath": "\\Processes",
+          "ResourcePath": "\\Web",
+          "SettingType": 5,
+          "SilverlightPath": "\\Xap",
+          "SitemapPath": "\\Sitemap",
+          "TypeScriptIntellisensePath": "\\WebResources\\IntellisenseFiles",
+          "TypeScriptPath": "\\WebResources",
+          "ViewPath": "\\Views",
+          "XmlPath": "\\WebResources",
+          "XslPath": "\\WebResources"
+        },
+        {
+          "PluginStepNameTemplate": "{messageDisplayName} - {primaryEntityDisplayName} - {pipelineStageDisplayName}",
+          "SettingType": 1
+        }
+      ]
+    }
+  ]
+}
