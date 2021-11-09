@@ -9,6 +9,7 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Description = Sequencer for use in Auto-Number Workflow
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{535F06BC-11E6-413F-A7C1-0BE56C8AB829}.Debug|Any CPU.ActiveCfg = Debug|Any CPU

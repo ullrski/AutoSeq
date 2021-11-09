@@ -22,6 +22,7 @@
                 "Id": "a9153dc6-7524-4fa8-94c7-e5fdf7a13c04",
                 "IsolationMode": 2,
                 "IsRegisteredInCrm": true,
+                "PathNameOnServer": "AutoSeq.Plugins.dll",
                 "SourceType": 0
               }
             }
