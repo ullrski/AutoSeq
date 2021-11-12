@@ -1,142 +1,151 @@
 using System;
 
 using System.Activities;
-
+using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Workflow;
 
 namespace AutoSeq.Plugins {
-    public partial class Sequencer:BaseWorkflow {
-        // Get The Table And Column Name
-        [RequiredArgument]
-        [Input("Select a Sequence")]
-        [ReferenceTarget("extentec_sequence")]
-        public InArgument<EntityReference> SelectedSequence { get; set; }
+	public partial class Sequencer:BaseWorkflow {
+		/*
+		 * Sequencer Workflow Plugin for d365 CRM v9+ returns a string that is one unit greater than the string of characters 
+		 * in a sequentional numbering system. The sequentional numbering system is defined by a character string entry
+		 * in Attribute/Column "extentec_base" (Base List) in the Entity/Table "extentec_sequence" (Sequencer). A different 
+		 * Sequencer is configured for each desired sequence and tested to be 1:1 with an Attribute/Column on any OOB or custom
+		 * entity. Using 1 Sequencer for multiple Attribute/Columns or in multiple Entity/Tables was not tested.
+		 *  
+		 * d365 CRM Workflow will supply the selected Entity record. The output incremented string is intended to be 
+		 * used for Autonumbering or other operations and tested to work in conjunction with JLattimer's sting utilities
+		 * https://github.com/jlattimer/CRM-String-Workflow-Utilities
+		 * 
+		 * Dependencies:  Entity/Table "extentec_sequence" with required non-null extentec_base and extentec_seed
+		 * Extentec AutoSeq was created by Absolute Insight, Inc. for Extentec
+		 * Eric Stearns (ullrski @ github) https://github.com/ullrski
+		 * Copyright (c) 2021 
+		 * Released & licensed under under the MIT License
+		 * Created using XRMToolkit 7.3.0.0 (https://xrmtoolkit.com/)
+		 */
 
-        [Output("Sequence String")]
-        public OutArgument<string> SequenceString { get; set; }
+		// Get sequence reference
+		[RequiredArgument]
+		[Input("Select a Sequence")]
+		[ReferenceTarget("extentec_sequence")]
+		public InArgument<EntityReference> SelectedSequence { get; set; }
 
-        protected override void ExecuteInternal(LocalWorkflowContext context) {
-            if (context == null) {
-                throw new ArgumentNullException(nameof(context));
-            }
+		// Return the new sequence
+		[Output("Sequence String")]
+		public OutArgument<string> SequenceString { get; set; }
 
-            var selectedSequence = this.SelectedSequence.Get(context.CodeActivityContext);
+		protected override void ExecuteInternal(LocalWorkflowContext context) {
 
-            if (!selectedSequence.KeyAttributes.TryGetValue("extentec_seqcurrent", out var sequenceString)) {
-                selectedSequence.KeyAttributes.Add("extentec_seqcurrent",
-                    selectedSequence.KeyAttributes.TryGetValue("extentec_seed", out var seed).ToString());
-                    sequenceString = seed;
-            }
+			// Verify context exists
+			if (context == null) {
+				throw new ArgumentNullException(nameof(context));
+			}
 
-            try {
-                SequenceString.Set(context.CodeActivityContext,sequenceString.ToString());
+			// Get & verify the selected entity record
+			Entity selectedSequencer = context.OrganizationService.Retrieve(
+				 this.SelectedSequence.Get(context.CodeActivityContext).LogicalName,
+				 this.SelectedSequence.Get(context.CodeActivityContext).Id,
+				 new ColumnSet(
+					 new String[] { "extentec_seqcurrent", "extentec_seed", "extentec_base", "extentec_seqlast", "extentec_seqnext" })
+				 );
+			
+			if (selectedSequencer == null) {
+				throw new ArgumentNullException(nameof(context));
+			}
 
-                if (!IncrementSequence(selectedSequence)) {
-                    throw new NotImplementedException(nameof(context));
-                }
-            } catch (Exception) {
-                throw;
-            }
-        }
+			// Get & verify the current sequence to use
+			if (!selectedSequencer.TryGetAttributeValue("extentec_seqcurrent", out string currentSequence)) {
+				//if null then use seed (required in the UI)
+				currentSequence = selectedSequencer.Attributes["extentec_seed"].ToString();
+			}
 
-        private bool IncrementSequence(EntityReference selectedSequence) {
+			// Get base array (required in UI)
+			char[] baseArray = selectedSequencer.TryGetAttributeValue("extentec_base", out string baseString)
+				? baseString.ToCharArray()
+				: throw new InvalidWorkflowException("baseArray (Sequencer.Base) Is Null");
 
-            //Declare Vars
-            string[] baseArray;
+			// Get nextSequence
+			if (!selectedSequencer.TryGetAttributeValue("extentec_seqnext", out string nextSequence)) {
+				//new one if null (means this was the first so seed = current)
+				nextSequence = Increment(currentSequence.ToCharArray(), baseArray);
+			}
+			
+			/*
+			 * Set the output = the current sequence
+			 * Increment the sequence
+			 * Move Sequencer forward one
+			 * Update the Sequencer
+			*/
+			try {
 
-            //Move Seq Forward and get Sequence & Base List to increment & save to newNext
-            if (selectedSequence.KeyAttributes.TryGetValue("extentec_base", out var baseList)) {
+				// Set the output =  currentSequence
+				SequenceString.Set(context.CodeActivityContext, currentSequence);
 
-                //split list
-                baseArray = baseList.ToString().Split(',');
+				// Set newNext = the the next sequence
+				string newNext = Increment(nextSequence.ToCharArray(), baseArray);
 
-                //move sequence and get array if sequence move success
-                if (MoveSequence(selectedSequence)) {
+				// Move sequence forward for next use
+				selectedSequencer.Attributes["extentec_seqnext"] = newNext;
+				selectedSequencer.Attributes["extentec_seqcurrent"] = nextSequence;
+				selectedSequencer.Attributes["extentec_seqlast"] = currentSequence;
 
-                    //new current to increment and save to newNext
-                    if (selectedSequence.KeyAttributes.TryGetValue("extentec_seqcurrent", out var newCurrent)) {
+				// update changes
+				context.OrganizationService.Update(selectedSequencer);
 
-                        selectedSequence.KeyAttributes.Add("extentec_seqnext", Increment(newCurrent.ToString().Split(), baseArray));
-                        return true;
+			} catch (Exception ex) {
+				throw new InvalidWorkflowException("AutoSeq.ExecuteInternal Exception: " + ex.Message);
+			}
+		}
 
-                    } else { throw new ArgumentNullException(nameof(selectedSequence)); }
+		private string Increment(char[] sequence, char[] baselist) {
+			
+			bool outOfRange;
+			int sequenceIndex = sequence.Length - 1;		
 
-                    //If move = false then need to update current and add next
-                } else if (selectedSequence.KeyAttributes.TryGetValue("extentec_seed", out var seed)) {
+			// trap 0 length array
+			if (sequenceIndex < 0) { 
+				throw new InvalidWorkflowException("Length of sequence array {sequenceIndex} < 1, invalid for processing"); 
+			}
 
-                    //update current
-                    selectedSequence.KeyAttributes.Add("extentec_seqcurrent", Increment(seed.ToString().Split(), baseArray));
+			/*
+			 * Increment the sequence by taking it as a string array and using a base array
+			 * to change the sequence array element up by one in the base array list
+			 * if the base arry list is out of bounds then go to the next left sequence
+			 * array element repeat
+			 */
+			try {
+				// increment, while range > 1 so no infinite loop
+				do {
+					//From Base List get the index of the current sequence character
+					int baselistIndex = Array.IndexOf(baselist, sequence[sequenceIndex]);
 
-                    if (selectedSequence.KeyAttributes.TryGetValue("extentec_seqcurrent", out var newCurrent)) {
+					//Increment the baselistIndex to ID the next character that this sequenceIndex element will be
+					baselistIndex++;
 
-                        //add next
-                        selectedSequence.KeyAttributes.Add("extentec_seqnext", Increment(newCurrent.ToString().Split(), baseArray));
+					/*
+					* if baselistIndex > baselist.Length - 1, then the sequence[sequenceIndex] should be set to baselist[0]
+					* and sequenceIndex decreased so the next loop can process the next place value
+					* else use new character baselistIndex to return the new character and overwirte the current sequenceIndex character
+					*/
+					if (baselistIndex > (baselist.Length - 1)) {
+						sequence[sequenceIndex] = baselist[0];	 //set char in current seq place value to first in base list
+						sequenceIndex--;						 //move to the next to the lsft place value
+						outOfRange = true;						 //go around again
+					} else {
+						sequence[sequenceIndex] = baselist[baselistIndex];  //set char in current seq place value to the next higher from base list 
+						outOfRange = false;									//char was updated, exit loop
+					}
+				} while (outOfRange && !(sequenceIndex < 0));  //just in case, prevent infinite loop  with <0 limit
 
-                        return true;
+				//return the string sequence
+				return string.Join("", sequence);
 
-                    } else { throw new ArgumentNullException(nameof(selectedSequence)); }
-                } else { return false; }
-            } else { throw new ArgumentNullException(nameof(selectedSequence)); }         //TODO: Default to {real integers} 
-        }
-
-        private bool MoveSequence(EntityReference selectedSequence) {
-
-            //If oldCurrent not Null then Set newLast = oldCurrent
-            if (selectedSequence.KeyAttributes.TryGetValue("extentec_seqcurrent", out var oldCurrentInSeq)) {
-
-                //Set newLast = oldCurrent
-                selectedSequence.KeyAttributes.Add("extentec_seqlast", oldCurrentInSeq.ToString());
-
-                //If oldNext not Null then Set newCurrent = oldNext
-                if (selectedSequence.KeyAttributes.TryGetValue("extentec_seqnext", out var oldNextInSeq)) {
-
-                    //Set newCurrent = oldNext
-                    selectedSequence.KeyAttributes.Add("extentec_seqcurrent", oldNextInSeq.ToString());
-
-                    return true;  //return to set newNext
-
-                } else {
-
-                    return false; //return to set newNext and newCurrent
-
-                }
-            } else { throw new ArgumentNullException(nameof(selectedSequence)); }
-        }
-
-        private string Increment(string[] sequenceArray, string[] baseArray) {
-            //Increment the sequence
-            try {
-
-                bool outOfRange;
-                int range = sequenceArray.Length;
-
-                do {
-
-                    try {
-
-                        //From Base List replace last char in (sequenceArray or Seed) with next char
-                        int indexOfLastChar = Array.IndexOf(baseArray, sequenceArray[range - 1]);
-                        int indexOfNextChar = indexOfLastChar + 1;
-
-                        //set last in sequence to new from base, throw if OutofRange
-                        sequenceArray[range - 1] = baseArray[indexOfNextChar];
-                        outOfRange = false;
-
-                    } catch (IndexOutOfRangeException) {
-
-                        //That was the last char in the base, increment the next unit factor
-                        outOfRange = true;
-                        range--;
-                    }
-                } while (outOfRange && (range - 1 > 0));
-
-                return sequenceArray.ToString();
-
-            } catch (Exception) {                
-                throw;
-            }
-        }
-    }
+			} catch (Exception ex) {
+				throw new InvalidWorkflowException("Increment Error: " + ex.Message);
+			}
+		}
+	}
 }
 

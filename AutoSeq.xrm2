@@ -15,6 +15,14 @@
       "Projects": [
         {
           "Name": "AutoSeq.Plugins.csproj",
+          "Files": [
+            {
+              "CrmId": "00000000-0000-0000-0000-000000000000",
+              "FileType": 26,
+              "IsWorkflow": true,
+              "RelativeFilePath": "\\Sequencer.cs"
+            }
+          ],
           "Properties": [
             {
               "PropertiesType": 1,
