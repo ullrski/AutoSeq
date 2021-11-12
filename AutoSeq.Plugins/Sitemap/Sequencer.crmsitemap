@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SiteMap IntroducedVersion="7.0.0.0">
+  <Area Id="New_Area" ResourceId="SitemapDesigner.NewArea" DescriptionResourceId="SitemapDesigner.NewArea" ShowGroups="true" IntroducedVersion="7.0.0.0">
+    <Group Id="extentec_utilities" ResourceId="SitemapDesigner.NewGroup" DescriptionResourceId="SitemapDesigner.NewGroup" IntroducedVersion="7.0.0.0" IsProfile="false" ToolTipResourseId="SitemapDesigner.Unknown">
+      <Titles>
+        <Title LCID="1033" Title="Extentec Utilities" />
+      </Titles>
+      <SubArea Id="extentec_AutoSeq" VectorIcon="/WebResources/extentec_sequence_fibonacci_svg" Icon="/_imgs/imagestrips/transparent_spacer.gif" IntroducedVersion="7.0.0.0" Entity="extentec_sequence" Client="All,Outlook,OutlookLaptopClient,OutlookWorkstationClient,Web" AvailableOffline="true" PassParams="false" Sku="All,OnPremise,Live,SPLA" />
+    </Group>
+  </Area>
+</SiteMap>

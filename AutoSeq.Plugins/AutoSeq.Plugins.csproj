@@ -3,7 +3,7 @@
     <TargetFramework>net462</TargetFramework>
     <AssemblyOriginatorKeyFile>AutoSeq.Plugins.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>True</SignAssembly>
-    <AssemblyVersion>4.2021.1112.0</AssemblyVersion>
+    <AssemblyVersion>5.2021.1112.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.42" />
@@ -13,5 +13,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Activities" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Solution\" />
   </ItemGroup>
 </Project>

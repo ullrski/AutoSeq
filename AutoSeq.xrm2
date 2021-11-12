@@ -21,6 +21,26 @@
               "FileType": 26,
               "IsWorkflow": true,
               "RelativeFilePath": "\\Sequencer.cs"
+            },
+            {
+              "CrmId": "6f4b29e7-fb40-ec11-8c62-000d3a5b81bb",
+              "FileType": 11,
+              "RelativeFilePath": "\\Sitemap\\Sequencer.crmsitemap"
+            },
+            {
+              "CrmId": "45d31b99-fa40-ec11-8c62-000d3a5b81bb",
+              "FileType": 5,
+              "RelativeFilePath": "\\WebResources\\extentec_sequence_fibonacci.png"
+            },
+            {
+              "CrmId": "4f7bb3e8-fa40-ec11-8c62-000d3a5b81bb",
+              "FileType": 39,
+              "RelativeFilePath": "\\WebResources\\extentec_sequence_fibonacci_svg.svg"
+            },
+            {
+              "CrmId": "668a1db2-fa40-ec11-8c62-000d3a5b81bb",
+              "FileType": 5,
+              "RelativeFilePath": "\\WebResources\\extentec_sequence_fibonacci32.png"
             }
           ],
           "Properties": [
