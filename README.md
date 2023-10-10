@@ -13,7 +13,7 @@ https://github.com/jlattimer/CRM-String-Workflow-Utilities
 
 Dependencies:  Entity/Table "extentec_sequence" with required non-null extentec_base and extentec_seed
 Extentec AutoSeq was created by Absolute Insight, Inc. for Extentec
-Eric Stearns (ullrski @ github) https://github.com/ullrski
+by ullrski @ github https://github.com/ullrski
 Copyright (c) 2021
 Released & licensed under under the MIT License
 Created using XRMToolkit 7.3.0.0 (https://xrmtoolkit.com/)
